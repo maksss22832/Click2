@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Космический Кликер</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #0f0c29;
+            background: linear-gradient(to right, #0f0c29, #302b63, #24243e);
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            user-select: none;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+        
+        h1 {
+            color: #00ffff;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+            margin-bottom: 30px;
+        }
+        
+        #clicker {
+            background-color: #1a1a2e;
+            border: 3px solid #00ffff;
+            border-radius: 50%;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #clicker:active {
+            transform: scale(0.95);
+            background-color: #16213e;
+        }
+        
+        #clicker::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.4) 0%, rgba(0, 0, 0, 0) 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        #clicker:active::after {
+            opacity: 1;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-box {
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            min-width: 120px;
+            margin: 10px;
+            border: 1px solid #00ffff;
+        }
+        
+        .upgrades {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .upgrade {
+            background-color: rgba(26, 26, 46, 0.8);
+            border: 1px solid #4e4e8a;
+            border-radius: 10px;
+            padding: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .upgrade:hover {
+            background-color: rgba(46, 46, 86, 0.8);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 200, 200, 0.2);
+        }
+        
+        .upgrade:active {
+            transform: translateY(1px);
+        }
+        
+        .upgrade h3 {
+            color: #00ffff;
+            margin-top: 0;
+        }
+        
+        .upgrade .price {
+            color: #ff5555;
+            font-weight: bold;
+        }
+        
+        .upgrade .owned {
+            color: #55ff55;
+            float: right;
+        }
+        
+        .upgrade.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: rgba(26, 26, 46, 0.4);
+        }
+        
+        .upgrade.disabled:hover {
+            transform: none;
+            box-shadow: none;
+            background-color: rgba(26, 26, 46, 0.4);
+        }
+        
+        .particle {
+            position: absolute;
+            background-color: rgba(0, 255, 255, 0.7);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        @media (max-width: 600px) {
+            #clicker {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .stats {
+                flex-direction: column;
+            }
+            
+            .upgrades {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>сигма Кликер</h1>
+        
+        <div class="stats">
+            <div class="stat-box">
+                <h3>пенисов в злате</h3>
+                <p id="points">0</p>
+            </div>
+            <div class="stat-box">
+                <h3>дилдаки/клик</h3>
+                <p id="points-per-click">1</p>
+            </div>
+            <div class="stat-box">
+                <h3>ширина очка/сек</h3>
+                <p id="points-per-second">0</p>
+            </div>
+        </div>
+        
+        <div id="clicker">
+            <div>трахни злату!</div>
+        </div>
+        
+        <div class="upgrades">
+            <div class="upgrade" id="upgrade-click">
+                <h3>Усиленный дилдак</h3>
+                <p>+1 член за клик</p>
+                <p class="price">Стоимость: <span id="click-upgrade-price">50</span></p>
+                <p class="owned">Куплено: <span id="click-upgrade-owned">0</span></p>
+            </div>
+            
+            <div class="upgrade" id="upgrade-auto1">
+                <h3>рыжий доксер пиздолиз</h3>
+                <p>+0.2 члена в секунду</p>
+                <p class="price">Стоимость: <span id="auto1-upgrade-price">100</span></p>
+                <p class="owned">Куплено: <span id="auto1-upgrade-owned">0</span></p>
+            </div>
+            
+            <div class="upgrade" id="upgrade-auto2">
+                <h3>Термоядерный дилдо</h3>
+                <p>+1 член в секунду</p>
+                <p class="price">Стоимость: <span id="auto2-upgrade-price">500</span></p>
+                <p class="owned">Куплено: <span id="auto2-upgrade-owned">0</span></p>
+            </div>
+            
+            <div class="upgrade" id="upgrade-auto3">
+                <h3>Квантовый напидорасиватель</h3>
+                <p>+5 членов в секунду</p>
+                <p class="price">Стоимость: <span id="auto3-upgrade-price">2000</span></p>
+                <p class="owned">Куплено: <span id="auto3-upgrade-owned">0</span></p>
+            </div>
+            
+            <div class="upgrade" id="upgrade-mega-click">
+                <h3>Мега-усиление</h3>
+                <p>Удваивает всю вашу гей оргию</p>
+                <p class="price">Стоимость: <span id="mega-click-price">10000</span></p>
+                <p class="owned">Куплено: <span id="mega-click-owned">0</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Игровые переменные
+        let points = 0;
+        let pointsPerClick = 1;
+        let pointsPerSecond = 0;
+        
+        // Улучшения
+        let clickUpgrade = {
+            price: 50,
+            owned: 0,
+            increase: 1
+        };
+        
+        let auto1Upgrade = {
+            price: 100,
+            owned: 0,
+            increase: 0.2
+        };
+        
+        let auto2Upgrade = {
+            price: 500,
+            owned: 0,
+            increase: 1
+        };
+        
+        let auto3Upgrade = {
+            price: 2000,
+            owned: 0,
+            increase: 5
+        };
+        
+        let megaClickUpgrade = {
+            price: 10000,
+            owned: 0
+        };
+        
+        // Элементы DOM
+        const pointsElement = document.getElementById('points');
+        const pointsPerClickElement = document.getElementById('points-per-click');
+        const pointsPerSecondElement = document.getElementById('points-per-second');
+        const clicker = document.getElementById('clicker');
+        
+        // Обновление интерфейса
+        function updateUI() {
+            pointsElement.textContent = Math.floor(points);
+            pointsPerClickElement.textContent = pointsPerClick.toFixed(1);
+            pointsPerSecondElement.textContent = pointsPerSecond.toFixed(1);
+            
+            // Обновление цен улучшений
+            document.getElementById('click-upgrade-price').textContent = Math.floor(clickUpgrade.price);
+            document.getElementById('auto1-upgrade-price').textContent = Math.floor(auto1Upgrade.price);
+            document.getElementById('auto2-upgrade-price').textContent = Math.floor(auto2Upgrade.price);
+            document.getElementById('auto3-upgrade-price').textContent = Math.floor(auto3Upgrade.price);
+            document.getElementById('mega-click-price').textContent = Math.floor(megaClickUpgrade.price);
+            
+            document.getElementById('click-upgrade-owned').textContent = clickUpgrade.owned;
+            document.getElementById('auto1-upgrade-owned').textContent = auto1Upgrade.owned;
+            document.getElementById('auto2-upgrade-owned').textContent = auto2Upgrade.owned;
+            document.getElementById('auto3-upgrade-owned').textContent = auto3Upgrade.owned;
+            document.getElementById('mega-click-owned').textContent = megaClickUpgrade.owned;
+            
+            // Проверка, какие улучшения можно купить
+            updateUpgradeButtons();
+        }
+        
+        // Проверка доступности улучшений
+        function updateUpgradeButtons() {
+            document.getElementById('upgrade-click').classList.toggle('disabled', points < clickUpgrade.price);
+            document.getElementById('upgrade-auto1').classList.toggle('disabled', points < auto1Upgrade.price);
+            document.getElementById('upgrade-auto2').classList.toggle('disabled', points < auto2Upgrade.price);
+            document.getElementById('upgrade-auto3').classList.toggle('disabled', points < auto3Upgrade.price);
+            document.getElementById('upgrade-mega-click').classList.toggle('disabled', points < megaClickUpgrade.price || megaClickUpgrade.owned >= 1);
+        }
+        
+        // Клик по основной кнопке
+        clicker.addEventListener('click', () => {
+            addPoints(pointsPerClick);
+            createParticles(event);
+        });
+        
+        // Добавление очков
+        function addPoints(amount) {
+            points += amount;
+            updateUI();
+        }
+        
+        // Автоматическое добавление очков
+        setInterval(() => {
+            if (pointsPerSecond > 0) {
+                addPoints(pointsPerSecond / 10);
+            }
+        }, 100);
+        
+        // Покупка улучшений
+        document.getElementById('upgrade-click').addEventListener('click', () => {
+            if (points >= clickUpgrade.price) {
+                points -= clickUpgrade.price;
+                pointsPerClick += clickUpgrade.increase;
+                clickUpgrade.owned++;
+                clickUpgrade.price = Math.floor(clickUpgrade.price * 1.5);
+                updateUI();
+            }
+        });
+        
+        document.getElementById('upgrade-auto1').addEventListener('click', () => {
+            if (points >= auto1Upgrade.price) {
+                points -= auto1Upgrade.price;
+                pointsPerSecond += auto1Upgrade.increase;
+                auto1Upgrade.owned++;
+                auto1Upgrade.price = Math.floor(auto1Upgrade.price * 1.5);
+                updateUI();
+            }
+        });
+        
+        document.getElementById('upgrade-auto2').addEventListener('click', () => {
+            if (points >= auto2Upgrade.price) {
+                points -= auto2Upgrade.price;
+                pointsPerSecond += auto2Upgrade.increase;
+                auto2Upgrade.owned++;
+                auto2Upgrade.price = Math.floor(auto2Upgrade.price * 1.5);
+                updateUI();
+            }
+        });
+        
+        document.getElementById('upgrade-auto3').addEventListener('click', () => {
+            if (points >= auto3Upgrade.price) {
+                points -= auto3Upgrade.price;
+                pointsPerSecond += auto3Upgrade.increase;
+                auto3Upgrade.owned++;
+                auto3Upgrade.price = Math.floor(auto3Upgrade.price * 1.5);
+                updateUI();
+            }
+        });
+        
+        document.getElementById('upgrade-mega-click').addEventListener('click', () => {
+            if (points >= megaClickUpgrade.price && megaClickUpgrade.owned < 1) {
+                points -= megaClickUpgrade.price;
+                points *= 2;
+                pointsPerClick *= 2;
+                pointsPerSecond *= 2;
+                megaClickUpgrade.owned++;
+                updateUI();
+            }
+        });
+        
+        // Создание частиц при клике
+        function createParticles(event) {
+            const clickerRect = clicker.getBoundingClientRect();
+            const centerX = clickerRect.left + clickerRect.width / 2;
+            const centerY = clickerRect.top + clickerRect.height / 2;
+            
+            const mouseX = event.clientX;
+            const mouseY = event.clientY;
+            
+            const angle = Math.atan2(mouseY - centerY, mouseX - centerX);
+            
+            for (let i = 0; i < 5; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                const size = Math.random() * 10 + 5;
+                const speed = Math.random() * 3 + 2;
+                const spread = Math.random() * 0.5 + 0.5;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                const adjustedAngle = angle + (Math.random() * 0.6 - 0.3);
+                const x = mouseX;
+                const y = mouseY;
+                
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                
+                document.body.appendChild(particle);
+                
+                let lifetime = 0;
+                const maxLifetime = Math.random() * 1000 + 500;
+                
+                const animate = () => {
+                    lifetime += 16;
+                    
+                    if (lifetime >= maxLifetime) {
+                        particle.remove();
+                        return;
+                    }
+                    
+                    const progress = lifetime / maxLifetime;
+                    const distance = speed * lifetime / 20 * spread;
+                    
+                    particle.style.left = `${x + Math.cos(adjustedAngle) * distance}px`;
+                    particle.style.top = `${y + Math.sin(adjustedAngle) * distance}px`;
+                    particle.style.opacity = 1 - progress;
+                    particle.style.transform = `scale(${1 - progress * 0.5})`;
+                    
+                    requestAnimationFrame(animate);
+                };
+                
+                requestAnimationFrame(animate);
+            }
+        }
+        
+        // Сохранение и загрузка игры
+        function saveGame() {
+            const gameData = {
+                points,
+                pointsPerClick,
+                pointsPerSecond,
+                clickUpgrade,
+                auto1Upgrade,
+                auto2Upgrade,
+                auto3Upgrade,
+                megaClickUpgrade
+            };
+            
+            localStorage.setItem('spaceClickerSave', JSON.stringify(gameData));
+        }
+        
+        function loadGame() {
+            const savedData = localStorage.getItem('spaceClickerSave');
+            if (savedData) {
+                const gameData = JSON.parse(savedData);
+                
+                points = gameData.points || 0;
+                pointsPerClick = gameData.pointsPerClick || 1;
+                pointsPerSecond = gameData.pointsPerSecond || 0;
+                
+                clickUpgrade = gameData.clickUpgrade || {price: 50, owned: 0, increase: 1};
+                auto1Upgrade = gameData.auto1Upgrade || {price: 100, owned: 0, increase: 0.2};
+                auto2Upgrade = gameData.auto2Upgrade || {price: 500, owned: 0, increase: 1};
+                auto3Upgrade = gameData.auto3Upgrade || {price: 2000, owned: 0, increase: 5};
+                megaClickUpgrade = gameData.megaClickUpgrade || {price: 10000, owned: 0};
+            }
+            
+            updateUI();
+        }
+        
+        // Автосохранение каждые 10 секунд
+        setInterval(saveGame, 10000);
+        
+        // Загрузка игры при старте
+        window.addEventListener('load', loadGame);
+    </script>
+</body>
+</html>
